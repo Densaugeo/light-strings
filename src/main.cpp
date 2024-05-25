@@ -2,17 +2,11 @@
 #ifdef __AVR__
   #include <avr/power.h>
 #endif
-#define PIN        6
+#define PIN         6
 #define NUMPIXELS 100
 
 Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
-#define DELAYVAL 15
-
-int red = 0;
-int green = 0;
-int blue = 0;
-int red_or_green;
-//int blue_or_green;
+#define DELAYVAL    5
 
 void set_flame_shade(int pixel, int shade) {
   int green, blue;
@@ -37,29 +31,23 @@ void setup() {
 }
 
 void loop() {
-  // Blue/green/violet
-  red_or_green = random(2);
-  blue = random(256);
+  int red = 0;
+  int green = 0;
+  int blue = 0;
   
-  if(red_or_green && blue > 0x80) {
-    red = random(256);
+  // Blue/green/violet twinkle
+  blue = random(0x80);
+  if(blue > 0x40 && random(2)) {
+    red = random(0x80);
     green = 0;
   } else {
     red = 0;
-    green = random(256);
+    green = random(0x80);
   }
   
-  /*
   // Halloween
-  red = random(256);
-
-  if(red > 0x80) {
-    green = random(red);
-    blue = 0;
-  } else {
-    green = 0;
-    blue = 0;
-  }*/
+  //red = random(0x100);
+  //green = red > 0x80 ? random(red) : 0;
   
   // Shared for both above
   pixels.setPixelColor(random(NUMPIXELS), pixels.Color(red, green, blue));
