@@ -9,6 +9,8 @@ Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 #define DELAYVAL  250
 
 bool conway[8][8];
+bool conway_2[8][8];
+bool conway_3[8][8];
 int conway_neighbor_counts[8][8];
 int tick_count = 0;
 int reset_at_tick = 0;
@@ -38,31 +40,29 @@ void setup() {
 #if defined(__AVR_ATtiny85__) && (F_CPU == 16000000)
   clock_prescale_set(clock_div_1);
 #endif
-
+  pinMode(A0, OUTPUT);
+  pinMode(A1, OUTPUT);
+  pinMode(A2, OUTPUT);
+  pinMode(A3, OUTPUT);
+  randomSeed(
+    (analogRead(A0) & 0xf) << 0 |
+    (analogRead(A1) & 0xf) << 4 |
+    (analogRead(A2) & 0xf) << 8 |
+    (analogRead(A3) & 0xf) << 12
+  );
   pixels.begin();
 }
 
 void loop() {
-  bool dead = true;
-  for(int x = 0; x < 8; ++x) {
-    for(int y = 0; y < 8; ++y) {
-      if(conway[x][y]) dead = false;
-    }
-  }
-  
-  if(dead || tick_count >= reset_at_tick) {
+  if(tick_count >= reset_at_tick) {
     init_conway(4 + random(3));
     red   = random(2)*0x80 + random(0x40);
     green = random(2)*0x80 + random(0x40);
     blue  = random(2)*0x80 + random(0x40);
-    reset_at_tick = tick_count + 40;
+    reset_at_tick = tick_count + 240;
   }
   
-  for(int x = 0; x < 8; ++x) {
-    for(int y = 0; y < 8; ++y) {
-      conway_neighbor_counts[x][y] = 0;
-    }
-  }
+  memset(conway_neighbor_counts, 0, sizeof(conway_neighbor_counts));
   for(int x = 0; x < 8; ++x) {
     for(int y = 0; y < 8; ++y) {
       if(conway[x][y]) {
@@ -77,6 +77,9 @@ void loop() {
       }
     }
   }
+  
+  memcpy(conway_3, conway_2, sizeof(conway));
+  memcpy(conway_2, conway  , sizeof(conway));
   for(int x = 0; x < 8; ++x) {
     for(int y = 0; y < 8; ++y) {
       if(conway_neighbor_counts[x][y] <  2) conway[x][y] = false;
@@ -84,6 +87,11 @@ void loop() {
       if(conway_neighbor_counts[x][y] == 3) conway[x][y] = true;
       if(conway_neighbor_counts[x][y] >  3) conway[x][y] = false;
     }
+  }
+  if(memcmp(conway, conway_3, sizeof(conway)) == 0) {
+    // Adding 6 ticks, plus 2 for the last 2 ticks, means the stuck board will
+    // display for 2 s
+    reset_at_tick = min(reset_at_tick, tick_count + 6);
   }
   
   for(int x = 0; x < 8; ++x) {
