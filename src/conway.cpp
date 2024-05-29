@@ -1,0 +1,100 @@
+#include <Adafruit_NeoPixel.h>
+#ifdef __AVR__
+  #include <avr/power.h>
+#endif
+#define PIN         0
+#define NUMPIXELS  64
+
+Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
+#define DELAYVAL  250
+
+bool conway[8][8];
+int conway_neighbor_counts[8][8];
+int tick_count = 0;
+int reset_at_tick = 0;
+int red = 0;
+int green = 0;
+int blue = 0;
+
+void init_conway(int rarity) {
+  for(int x = 0; x < 8; ++x) {
+    for(int y = 0; y < 8; ++y) {
+      conway[x][y] = (random(rarity) == 0);
+    }
+  }
+}
+
+// Convert x,y coordinates to an LED index
+int coord_8x8(int x, int y) {
+  x = constrain(x, 0, 7);
+  y = constrain(y, 0, 7);
+  
+  // The LED grid snakes back and forth, so the coordsinates must account for
+  // that
+  return 8*y + (y % 2 ? x : 7 - x);
+}
+
+void setup() {
+#if defined(__AVR_ATtiny85__) && (F_CPU == 16000000)
+  clock_prescale_set(clock_div_1);
+#endif
+
+  pixels.begin();
+}
+
+void loop() {
+  bool dead = true;
+  for(int x = 0; x < 8; ++x) {
+    for(int y = 0; y < 8; ++y) {
+      if(conway[x][y]) dead = false;
+    }
+  }
+  
+  if(dead || tick_count >= reset_at_tick) {
+    init_conway(4 + random(3));
+    red   = random(2)*0x80 + random(0x40);
+    green = random(2)*0x80 + random(0x40);
+    blue  = random(2)*0x80 + random(0x40);
+    reset_at_tick = tick_count + 40;
+  }
+  
+  for(int x = 0; x < 8; ++x) {
+    for(int y = 0; y < 8; ++y) {
+      conway_neighbor_counts[x][y] = 0;
+    }
+  }
+  for(int x = 0; x < 8; ++x) {
+    for(int y = 0; y < 8; ++y) {
+      if(conway[x][y]) {
+        if(x > 0 && y > 0) ++conway_neighbor_counts[x - 1][y - 1];
+        if(x > 0         ) ++conway_neighbor_counts[x - 1][y    ];
+        if(x > 0 && y < 7) ++conway_neighbor_counts[x - 1][y + 1];
+        if(         y > 0) ++conway_neighbor_counts[x    ][y - 1];
+        if(         y < 7) ++conway_neighbor_counts[x    ][y + 1];
+        if(x < 7 && y > 0) ++conway_neighbor_counts[x + 1][y - 1];
+        if(x < 7         ) ++conway_neighbor_counts[x + 1][y    ];
+        if(x < 7 && y < 7) ++conway_neighbor_counts[x + 1][y + 1];
+      }
+    }
+  }
+  for(int x = 0; x < 8; ++x) {
+    for(int y = 0; y < 8; ++y) {
+      if(conway_neighbor_counts[x][y] <  2) conway[x][y] = false;
+      // Two live neighbors causes no change
+      if(conway_neighbor_counts[x][y] == 3) conway[x][y] = true;
+      if(conway_neighbor_counts[x][y] >  3) conway[x][y] = false;
+    }
+  }
+  
+  for(int x = 0; x < 8; ++x) {
+    for(int y = 0; y < 8; ++y) {
+      pixels.setPixelColor(coord_8x8(x, y),
+        conway[x][y] ? pixels.Color(red, green, blue) : pixels.Color(0, 0, 0)
+      );
+    }
+  }
+  pixels.show();
+  
+  ++tick_count;
+  delay(DELAYVAL);
+}
