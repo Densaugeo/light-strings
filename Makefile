@@ -11,7 +11,7 @@ install-dev:
 	echo 'NOTE: Must run builds with FLASH=1 to autoinstall platformio stuff'
 
 twinkle: src/twinkle.cpp
-	python -m platformio run -e nanoatmega328-twinkle $(TARGET)
+	python -m platformio run -e pico-twinkle $(TARGET)
 
 conway: src/conway.cpp
 	python -m platformio run -e pico-conway $(TARGET)
