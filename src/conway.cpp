@@ -4,6 +4,7 @@
 #endif
 #define PIN         0
 #define NUMPIXELS  64
+#define BRIGHTNESS  4 // Range of 0 to 64
 
 Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 #define DELAYVAL  250
@@ -56,9 +57,9 @@ void setup() {
 void loop() {
   if(tick_count >= reset_at_tick) {
     init_conway(4 + random(3));
-    red   = random(2)*0x80 + random(0x40);
-    green = random(2)*0x80 + random(0x40);
-    blue  = random(2)*0x80 + random(0x40);
+    red   = random(2)*2*BRIGHTNESS + random(BRIGHTNESS);
+    green = random(2)*2*BRIGHTNESS + random(BRIGHTNESS);
+    blue  = random(2)*2*BRIGHTNESS + random(BRIGHTNESS);
     reset_at_tick = tick_count + 240;
   }
   
