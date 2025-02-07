@@ -4,6 +4,7 @@
 #endif
 #define PIN         0
 #define NUMPIXELS 100
+#define BRIGHTNESS 12 // Range of 0 to 64
 
 Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 #define DELAYVAL    5
@@ -36,13 +37,13 @@ void loop() {
   int blue = 0;
   
   // Blue/green/violet twinkle
-  blue = random(0x80);
-  if(blue > 0x40 && random(2)) {
-    red = random(0x80);
+  blue = random(4*BRIGHTNESS);
+  if(blue > 2*BRIGHTNESS && random(2)) {
+    red = random(4*BRIGHTNESS);
     green = 0;
   } else {
     red = 0;
-    green = random(0x80);
+    green = random(4*BRIGHTNESS);
   }
   
   // Halloween
