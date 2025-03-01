@@ -57,9 +57,9 @@ void setup() {
 void loop() {
   if(tick_count >= reset_at_tick) {
     init_conway(4 + random(3));
-    red   = random(2)*2*BRIGHTNESS + random(BRIGHTNESS);
-    green = random(2)*2*BRIGHTNESS + random(BRIGHTNESS);
-    blue  = random(2)*2*BRIGHTNESS + random(BRIGHTNESS);
+    red   = random(2)*3*BRIGHTNESS + random(BRIGHTNESS);
+    green = random(2)*3*BRIGHTNESS + random(BRIGHTNESS);
+    blue  = random(2)*3*BRIGHTNESS + random(BRIGHTNESS);
     reset_at_tick = tick_count + 240;
   }
   
